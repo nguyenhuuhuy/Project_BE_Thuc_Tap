@@ -49,15 +49,7 @@ public class BookingController {
         }
         return new ResponseEntity<>(booking, HttpStatus.OK);
     }
-    @GetMapping("/list-oderByUserId/{id}")
-    public ResponseEntity<?> showListOderByUserId(@PathVariable Long id){
-        List<Booking> bookingOderByUserId = bookingService.findByUserId(id);
-        if (bookingOderByUserId.isEmpty()){
-            responMessage.setMessage(MessageConfig.NOT_FOUND);
-            return new ResponseEntity<>(responMessage,HttpStatus.NOT_FOUND);
-        }
-        return new ResponseEntity<>(bookingOderByUserId,HttpStatus.OK);
-    }
+
 
     @GetMapping("/detail/userBookingByTimeSlotId/{id}")
     public ResponseEntity<?> detailUserBookingByTimeSlotId(@PathVariable Long id){

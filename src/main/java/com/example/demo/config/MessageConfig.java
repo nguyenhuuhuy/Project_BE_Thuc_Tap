@@ -11,8 +11,8 @@ public final class MessageConfig {
     public static final String DELETE_SUCCESS = "delete_success";
     public static final String NO_CHANGE = "no_change";
     public static final String NO_USER = "no_user";
-    public static final String NAME_ALREADY_EXISTS = "User Name already exists";
-    public static final String EMAIL_ALREADY_EXISTS = "Email already exists";
+    public static final String NAME_ALREADY_EXISTS = "User_Name_already_exists";
+    public static final String EMAIL_ALREADY_EXISTS = "Email_already_exists";
     public static final String ACCESS_DENIED = "access_denied";
     public static final String NAME_EXISTED = "name_existed";
     public static final String NOT_FOUND = "not_found";

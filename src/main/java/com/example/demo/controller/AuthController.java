@@ -10,15 +10,17 @@ import com.example.demo.dto.response.ResponMessage;
 import com.example.demo.model.*;
 import com.example.demo.security.jwt.JwtProvider;
 import com.example.demo.security.jwt.JwtTokenFilter;
+import com.example.demo.security.userprincal.UserDetailService;
 import com.example.demo.security.userprincal.UserPrinciple;
+import com.example.demo.service.booking.IBookingService;
 import com.example.demo.service.doctor.IDoctorService;
 import com.example.demo.service.role.RoleServiceIMPL;
+import com.example.demo.service.specialty.ISpecialtyService;
 import com.example.demo.service.timeslot.ITimeSlotService;
 import com.example.demo.service.user.UserServiceIMPL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -37,6 +39,12 @@ import java.util.*;
 public class AuthController {
     @Autowired
     UserServiceIMPL userService;
+    @Autowired
+    private UserDetailService userDetailService;
+    @Autowired
+    private IBookingService bookingService;
+    @Autowired
+    ISpecialtyService iSpecialtyService;
     @Autowired
     IDoctorService doctorService;
     @Autowired
@@ -76,6 +84,93 @@ public class AuthController {
             return new ResponseEntity<>(responMessage,HttpStatus.NOT_FOUND);
         }
         return new ResponseEntity<>(timeSlot,HttpStatus.OK);
+    }
+
+    @GetMapping("/list/oderByUserId")
+    public ResponseEntity<?> showListOderByUserId(HttpServletRequest request){
+        String token = jwtTokenFilter.getJwt(request);
+        if (token == null){
+            responMessage.setMessage(MessageConfig.NO_USER);
+            return new ResponseEntity<>(responMessage,HttpStatus.OK);
+        }
+        String username = jwtProvider.getUerNameFromToken(token);
+        User user = userService.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("Username not found"));
+        if (user.getId() == null){
+            responMessage.setMessage(MessageConfig.NO_USER);
+            return new ResponseEntity<>(responMessage,HttpStatus.OK);
+        }
+        List<Booking> bookingOderByUserId = bookingService.findByUserId(user.getId());
+        if (bookingOderByUserId.isEmpty()){
+            responMessage.setMessage(MessageConfig.NOT_FOUND);
+            return new ResponseEntity<>(responMessage,HttpStatus.OK);
+        }
+        List<Booking> bookingListOderLoading = new ArrayList<>();
+        for (int i = 0; i < bookingOderByUserId.size(); i++) {
+            if (bookingOderByUserId.get(i).getIsConfirm() == IsConfirm.LOADING){
+                bookingListOderLoading.add(bookingOderByUserId.get(i));
+            }
+        }
+        return new ResponseEntity<>(bookingListOderLoading,HttpStatus.OK);
+    }
+
+    @GetMapping("/list/cancelByUserId")
+    public ResponseEntity<?> showListCancelByUserId(HttpServletRequest request){
+        String token = jwtTokenFilter.getJwt(request);
+        if (token == null){
+            responMessage.setMessage(MessageConfig.NO_USER);
+            return new ResponseEntity<>(responMessage,HttpStatus.OK);
+        }
+        String username = jwtProvider.getUerNameFromToken(token);
+        User user = userService.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("Username not found"));
+        if (user.getId() == null){
+            responMessage.setMessage(MessageConfig.NO_USER);
+            return new ResponseEntity<>(responMessage,HttpStatus.OK);
+        }
+        List<Booking> bookingOderByUserId = bookingService.findByUserId(user.getId());
+        if (bookingOderByUserId.isEmpty()){
+            responMessage.setMessage(MessageConfig.NOT_FOUND);
+            return new ResponseEntity<>(responMessage,HttpStatus.OK);
+        }
+        List<Booking> bookingListOderCancel = new ArrayList<>();
+        for (int i = 0; i < bookingOderByUserId.size(); i++) {
+            if (bookingOderByUserId.get(i).getIsConfirm() == IsConfirm.CANCEL){
+                bookingListOderCancel.add(bookingOderByUserId.get(i));
+            }
+        }
+        return new ResponseEntity<>(bookingListOderCancel,HttpStatus.OK);
+    }
+
+    @GetMapping("/list/acceptByUserId")
+    public ResponseEntity<?> showListAcceptByUserId(HttpServletRequest request){
+        String token = jwtTokenFilter.getJwt(request);
+        if (token == null){
+            responMessage.setMessage(MessageConfig.NO_USER);
+            return new ResponseEntity<>(responMessage,HttpStatus.OK);
+        }
+        String username = jwtProvider.getUerNameFromToken(token);
+        User user = userService.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("Username not found"));
+        if (user.getId() == null){
+            responMessage.setMessage(MessageConfig.NO_USER);
+            return new ResponseEntity<>(responMessage,HttpStatus.OK);
+        }
+        List<Booking> bookingOderByUserId = bookingService.findByUserId(user.getId());
+        if (bookingOderByUserId.isEmpty()){
+            responMessage.setMessage(MessageConfig.NOT_FOUND);
+            return new ResponseEntity<>(responMessage,HttpStatus.OK);
+        }
+        List<Booking> bookingListOderAccept = new ArrayList<>();
+        for (int i = 0; i < bookingOderByUserId.size(); i++) {
+            if (bookingOderByUserId.get(i).getIsConfirm() == IsConfirm.ACCEPT){
+                bookingListOderAccept.add(bookingOderByUserId.get(i));
+            }
+        }
+        return new ResponseEntity<>(bookingListOderAccept,HttpStatus.OK);
+    }
+    @GetMapping("/specialty")
+    public ResponseEntity<?> showListSpecialty() {
+        List<Specialty> specialtyList = iSpecialtyService.findAll();
+        Collections.reverse(specialtyList);
+        return new ResponseEntity<>(specialtyList, HttpStatus.OK);
     }
     @GetMapping("/users")
     public ResponseEntity<?> getListUser() {
