@@ -52,16 +52,17 @@ public class BookingController {
 
 
     @GetMapping("/detail/userBookingByTimeSlotId/{id}")
-    public ResponseEntity<?> detailUserBookingByTimeSlotId(@PathVariable Long id){
+    public ResponseEntity<?> detailUserBookingByTimeSlotId(@PathVariable Long id) {
         List<Booking> booking = bookingService.findByTimeSlotId(id);
-        if (booking.isEmpty()){
+        if (booking.isEmpty()) {
             responMessage.setMessage(MessageConfig.NOT_FOUND);
-            return new ResponseEntity<>(responMessage,HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(responMessage, HttpStatus.NOT_FOUND);
         }
-        return new ResponseEntity<>(booking,HttpStatus.OK);
+        return new ResponseEntity<>(booking, HttpStatus.OK);
     }
+
     @PostMapping("/{id}")
-    public ResponseEntity<?> createBooking(@RequestBody BookingDto bookingDto,@PathVariable Long id) {
+    public ResponseEntity<?> createBooking(@RequestBody BookingDto bookingDto, @PathVariable Long id) {
         User user = userDetailService.getCurrentUser();
         String role = "";
         role = userService.getUserRole(user);
@@ -75,9 +76,9 @@ public class BookingController {
         booking.setUser(user);
         booking.setReason(bookingDto.getReason());
         Optional<TimeSlot> timeSlot = timeSlotService.findById(id);
-        if (timeSlot.get().isBooked()){
+        if (timeSlot.get().isBooked()) {
             responMessage.setMessage(MessageConfig.NOT_TIME_SLOT);
-            return new ResponseEntity<>(responMessage,HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(responMessage, HttpStatus.NOT_FOUND);
         }
         timeSlot.get().setBooked(true);
         booking.setTimeSlot(timeSlot.get());
@@ -88,16 +89,32 @@ public class BookingController {
         return new ResponseEntity<>(responMessage, HttpStatus.OK);
     }
 
-    @PutMapping("/timeslot/doctor/{id}")
-    public ResponseEntity<?> successBookingsOderById(@PathVariable Long id){
+    @PostMapping("/success/booking/oder/timeSlot/{id}")
+    public ResponseEntity<?> successBookingsOderById(@PathVariable Long id) {
         Optional<Booking> successBooking = bookingService.findById(id);
-        if (!successBooking.isPresent()){
+        if (!successBooking.isPresent()) {
             responMessage.setMessage(MessageConfig.NOT_FOUND);
-            return new ResponseEntity<>(responMessage,HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(responMessage, HttpStatus.NOT_FOUND);
         }
         successBooking.get().setIsConfirm(IsConfirm.ACCEPT);
         bookingService.save(successBooking.get());
         responMessage.setMessage(MessageConfig.UPDATE_SUCCESS);
-        return new ResponseEntity<>(responMessage,HttpStatus.OK);
+        return new ResponseEntity<>(responMessage, HttpStatus.OK);
+    }
+
+    @PostMapping("/cancel/booking/oder/timeSlot/{id}")
+    public ResponseEntity<?> cancelBookingsOderById(@PathVariable Long id) {
+        Optional<Booking> cancelBooking = bookingService.findById(id);
+        if (!cancelBooking.isPresent()) {
+            responMessage.setMessage(MessageConfig.NOT_FOUND);
+            return new ResponseEntity<>(responMessage, HttpStatus.NOT_FOUND);
+        }
+        Optional<TimeSlot> timeSlot = timeSlotService.findById(cancelBooking.get().getTimeSlot().getId());
+        timeSlot.get().setBooked(false);
+        cancelBooking.get().setIsConfirm(IsConfirm.NOT_ACCEPT);
+        timeSlotService.save(timeSlot.get());
+        bookingService.save(cancelBooking.get());
+        responMessage.setMessage(MessageConfig.UPDATE_SUCCESS);
+        return new ResponseEntity<>(responMessage, HttpStatus.OK);
     }
 }

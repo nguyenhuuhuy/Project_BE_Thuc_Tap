@@ -50,7 +50,7 @@ public class DoctorServiceIMPL implements IDoctorService{
     }
 
     @Override
-    public Doctor getDoctorByUserId(Long id) {
+    public Optional<Doctor> getDoctorByUserId(Long id) {
         return iDoctorRepository.getDoctorByUserId(id);
     }
 }

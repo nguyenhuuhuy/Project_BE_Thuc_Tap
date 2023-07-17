@@ -140,6 +140,22 @@ public class AuthController {
         return new ResponseEntity<>(bookingListOderCancel,HttpStatus.OK);
     }
 
+    @PutMapping("/cancel/booking/user/timeslot/{id}")
+    public ResponseEntity<?> cancelBookingByTimeslotId(@PathVariable Long id){
+        Optional<Booking> cancelBooking = bookingService.findById(id);
+        if (!cancelBooking.isPresent()){
+            responMessage.setMessage(MessageConfig.NOT_FOUND);
+            return new ResponseEntity<>(responMessage,HttpStatus.NOT_FOUND);
+        }
+        Optional<TimeSlot> timeSlot = timeSlotService.findById(cancelBooking.get().getTimeSlot().getId());
+        timeSlot.get().setBooked(false);
+        cancelBooking.get().setIsConfirm(IsConfirm.CANCEL);
+        bookingService.save(cancelBooking.get());
+        timeSlotService.save(timeSlot.get());
+        responMessage.setMessage(MessageConfig.UPDATE_SUCCESS);
+        return new ResponseEntity<>(responMessage,HttpStatus.OK);
+    }
+
     @GetMapping("/list/acceptByUserId")
     public ResponseEntity<?> showListAcceptByUserId(HttpServletRequest request){
         String token = jwtTokenFilter.getJwt(request);

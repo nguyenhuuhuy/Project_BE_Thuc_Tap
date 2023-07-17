@@ -43,10 +43,19 @@ public class TimeSlotController {
         }
         return new ResponseEntity<>(timeSlot,HttpStatus.OK);
     }
+    @GetMapping("/detail/list/timeSlotByDoctor/{id}")
+    public ResponseEntity<?> detailTimeSlotByDoctorId(@PathVariable Long id){
+        List<TimeSlot> timeSlotListByDoctorId = timeSlotService.getTimeSlotsByDoctorId(id);
+        if (timeSlotListByDoctorId.size() == 0){
+            responMessage.setMessage(MessageConfig.NOT_FOUND);
+            return new ResponseEntity<>(responMessage,HttpStatus.OK);
+        }
+        return new ResponseEntity<>(timeSlotListByDoctorId,HttpStatus.OK);
+    }
     @PostMapping
     public ResponseEntity<?> createTimeSlot(@RequestBody TimeSlotDto timeSlotDto){
         User user = userDetailService.getCurrentUser();
-        Doctor doctor = doctorService.getDoctorByUserId(user.getId());
+        Optional<Doctor> doctor = doctorService.getDoctorByUserId(user.getId());
         TimeSlot timeSlotData = new TimeSlot();
         timeSlotData.setDate_book(timeSlotDto.getDate_book());
         switch (timeSlotDto.getTime_book()){
@@ -72,8 +81,8 @@ public class TimeSlotController {
                 responMessage.setMessage(MessageConfig.NOT_FOUND);
                 return new ResponseEntity<>(responMessage,HttpStatus.NOT_FOUND);
         }
-        timeSlotData.setDoctor(doctor);
-        List<TimeSlot> timeSlotList = timeSlotService.getTimeSlotsByDoctorId(doctor.getId());
+        timeSlotData.setDoctor(doctor.get());
+        List<TimeSlot> timeSlotList = timeSlotService.getTimeSlotsByDoctorId(doctor.get().getId());
         for (TimeSlot timeSlot : timeSlotList) {
             if (timeSlot.getDate_book().getDay() == timeSlotData.getDate_book().getDay()) {
                 if (timeSlot.getTimes().equals(timeSlotData.getTimes())){

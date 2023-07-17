@@ -4,7 +4,10 @@ import com.example.demo.config.MessageConfig;
 import com.example.demo.dto.request.DoctorDto;
 import com.example.demo.dto.response.ResponMessage;
 import com.example.demo.model.*;
+import com.example.demo.security.jwt.JwtProvider;
+import com.example.demo.security.jwt.JwtTokenFilter;
 import com.example.demo.security.userprincal.UserDetailService;
+import com.example.demo.service.booking.IBookingService;
 import com.example.demo.service.doctor.IDoctorService;
 import com.example.demo.service.role.IRoleService;
 import com.example.demo.service.specialty.ISpecialtyService;
@@ -12,8 +15,11 @@ import com.example.demo.service.user.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 
 @Controller
@@ -21,22 +27,47 @@ import java.util.*;
 @CrossOrigin(origins = "*")
 public class DoctorController {
     @Autowired
-    IDoctorService doctorService;
+    private IDoctorService doctorService;
     @Autowired
-    IRoleService roleService;
+    private IRoleService roleService;
     @Autowired
     private UserDetailService userDetailService;
+    @Autowired
+    private IBookingService bookingService;
     @Autowired
     private IUserService userService;
     @Autowired
     private ISpecialtyService specialtyService;
+    @Autowired
+    JwtProvider jwtProvider;
+    @Autowired
+    JwtTokenFilter jwtTokenFilter;
     private final ResponMessage responMessage = MessageConfig.responMessage;
-
     @GetMapping
     public ResponseEntity<?> showListDoctor() {
         List<Doctor> storyList = doctorService.findAll();
         Collections.reverse(storyList);
         return new ResponseEntity<>(storyList, HttpStatus.OK);
+    }
+    @GetMapping("/detail/doctor")
+    public ResponseEntity<?> detailDoctor(HttpServletRequest request){
+        String token = jwtTokenFilter.getJwt(request);
+        if (token == null){
+            responMessage.setMessage(MessageConfig.NO_USER);
+            return new ResponseEntity<>(responMessage,HttpStatus.OK);
+        }
+        String username = jwtProvider.getUerNameFromToken(token);
+        User user = userService.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("Username not found"));
+        if (user.getId() == null){
+            responMessage.setMessage(MessageConfig.NO_USER);
+            return new ResponseEntity<>(responMessage,HttpStatus.OK);
+        }
+        Optional<Doctor> doctor = doctorService.getDoctorByUserId(user.getId());
+        if (!doctor.isPresent()){
+            responMessage.setMessage(MessageConfig.NOT_FOUND);
+            return new ResponseEntity<>(responMessage,HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(doctor,HttpStatus.OK);
     }
     @GetMapping("/detail-doctor/{id}")
     public ResponseEntity<?> detailDoctorById(@PathVariable Long id){
@@ -110,5 +141,16 @@ public class DoctorController {
         responMessage.setMessage(MessageConfig.UPDATE_SUCCESS);
         return new ResponseEntity<>(responMessage,HttpStatus.OK);
     }
-
+//    @PutMapping("success/booking/oder/timeSlot/{id}")
+//    public ResponseEntity<?> successUserOderByTimeSlotId(@PathVariable Long id) {
+//        Optional<Booking> booking = bookingService.findById(id);
+//        if (!booking.isPresent()){
+//            responMessage.setMessage(MessageConfig.NOT_FOUND);
+//            return new ResponseEntity<>(responMessage,HttpStatus.NOT_FOUND);
+//        }
+//        booking.get().setIsConfirm(IsConfirm.ACCEPT);
+//        bookingService.save(booking.get());
+//        responMessage.setMessage(MessageConfig.UPDATE_SUCCESS);
+//        return new ResponseEntity<>(responMessage,HttpStatus.OK);
+//    }
 }

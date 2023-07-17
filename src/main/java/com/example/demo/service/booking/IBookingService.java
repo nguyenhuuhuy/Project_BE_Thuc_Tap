@@ -10,4 +10,6 @@ public interface IBookingService extends IGenericService<Booking> {
     List<Booking> getListBookingByIsConfirm();
     List<Booking> findByUserId(Long id);
     List<Booking> findByTimeSlotId(Long id);
+//    Optional<Booking> getBookingByTimeSlotId(Long id);
+
 }
