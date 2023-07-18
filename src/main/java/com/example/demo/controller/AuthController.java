@@ -71,7 +71,7 @@ public class AuthController {
         List<TimeSlot> timeSlotList = timeSlotService.getTimeSlotsByDoctorId(id);
         if (timeSlotList.isEmpty()){
             responMessage.setMessage(MessageConfig.NOT_FOUND);
-            return new ResponseEntity<>(responMessage,HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(responMessage,HttpStatus.OK);
         }
         return new ResponseEntity<>(timeSlotList,HttpStatus.OK);
     }
@@ -248,6 +248,11 @@ public class AuthController {
                 new UsernamePasswordAuthenticationToken(signInForm.getUsername(), signInForm.getPassword()));
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String token = jwtProvider.createToken(authentication);
+        String username = jwtProvider.getUerNameFromToken(token);
+        User user = userService.findByUsername(username).orElseThrow(()->new UsernameNotFoundException("user name not fond"));
+        if (user.isStatus()){
+            return new ResponseEntity<>(new ResponMessage("login_denied"),HttpStatus.OK);
+        }
         UserPrinciple userPrinciple = (UserPrinciple) authentication.getPrincipal();
         return ResponseEntity.ok(new JwtResponse(token, userPrinciple.getName(), userPrinciple.getAvatar(), userPrinciple.getAuthorities()));
     }

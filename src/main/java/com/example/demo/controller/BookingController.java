@@ -14,10 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Controller
 @RequestMapping("/bookings")
@@ -58,7 +55,13 @@ public class BookingController {
             responMessage.setMessage(MessageConfig.NOT_FOUND);
             return new ResponseEntity<>(responMessage, HttpStatus.NOT_FOUND);
         }
-        return new ResponseEntity<>(booking, HttpStatus.OK);
+        List<Booking> bookingListLoading = new ArrayList<>();
+        for (int i = 0; i < booking.size(); i++) {
+            if (booking.get(i).getIsConfirm() == IsConfirm.LOADING || booking.get(i).getIsConfirm() == IsConfirm.ACCEPT){
+                    bookingListLoading.add(booking.get(i));
+            }
+        }
+        return new ResponseEntity<>(bookingListLoading, HttpStatus.OK);
     }
 
     @PostMapping("/{id}")

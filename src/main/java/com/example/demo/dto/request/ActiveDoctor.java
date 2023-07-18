@@ -1,6 +1,5 @@
 package com.example.demo.dto.request;
 
-import com.example.demo.model.Specialty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -8,6 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class DoctorDto {
-    private Specialty specialty;
+public class ActiveDoctor {
+    private Long doctorId;
+    private Long userId;
 }
