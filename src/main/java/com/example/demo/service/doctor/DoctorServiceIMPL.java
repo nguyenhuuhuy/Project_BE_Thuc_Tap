@@ -53,4 +53,9 @@ public class DoctorServiceIMPL implements IDoctorService{
     public Optional<Doctor> getDoctorByUserId(Long id) {
         return iDoctorRepository.getDoctorByUserId(id);
     }
+
+    @Override
+    public List<Doctor> listDoctorByName(String name) {
+        return iDoctorRepository.listDoctorByName(name);
+    }
 }

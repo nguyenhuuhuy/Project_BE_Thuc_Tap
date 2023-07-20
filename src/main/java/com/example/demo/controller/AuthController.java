@@ -19,6 +19,8 @@ import com.example.demo.service.specialty.ISpecialtyService;
 import com.example.demo.service.timeslot.ITimeSlotService;
 import com.example.demo.service.user.UserServiceIMPL;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -60,6 +62,11 @@ public class AuthController {
     @Autowired
     JwtTokenFilter jwtTokenFilter;
     private final ResponMessage responMessage = MessageConfig.responMessage;
+
+    @GetMapping("/page/users")
+    public ResponseEntity<?> showListPageUser(@PageableDefault(size = 5) Pageable pageable){
+        return new ResponseEntity<>(userService.findAll(pageable), HttpStatus.OK);
+    }
     @GetMapping("/doctors")
     public ResponseEntity<?> showListDoctor() {
         List<Doctor> storyList = doctorService.findAll();
@@ -299,6 +306,36 @@ public class AuthController {
         }
     }
 
+    @GetMapping("/block/user/{id}")
+    public ResponseEntity<?> blockUser(@PathVariable Long id) {
+        Optional<User> user = userService.findById(id);
+        String role = "";
+        if (!user.isPresent()) {
+            responMessage.setMessage(MessageConfig.NOT_FOUND);
+            return new ResponseEntity<>(responMessage, HttpStatus.OK);
+        } else {
+            User user1 = userDetailService.getCurrentUser();
+            role = userService.getUserRole(user1);
+            if (role != "ADMIN") {
+                responMessage.setMessage(MessageConfig.ACCESS_DENIED);
+                return new ResponseEntity<>(responMessage, HttpStatus.OK);
+            }
+            if (userService.getUserRole(user.get()) == "ADMIN") {
+                responMessage.setMessage(MessageConfig.ACCESS_DENIED);
+                return new ResponseEntity<>(responMessage, HttpStatus.OK);
+            }
+            if (user.get().isStatus()){
+                user.get().setStatus(false);
+                userService.save(user.get());
+                responMessage.setMessage(MessageConfig.UN_BLOCK_SUCCESS);
+                return new ResponseEntity<>(responMessage, HttpStatus.OK);
+            }
+            user.get().setStatus(true);
+            userService.save(user.get());
+            responMessage.setMessage(MessageConfig.BLOCK_SUCCESS);
+            return new ResponseEntity<>(responMessage, HttpStatus.OK);
+        }
+    }
     @GetMapping("/search/users/{search}")
     public ResponseEntity<?> searchSpecialty(@PathVariable String search) {
         List<User> userList = userService.findByNameContaining(search);

@@ -87,7 +87,7 @@ public class DoctorController {
         return new ResponseEntity<>(doctor, HttpStatus.OK);
     }
 
-    @GetMapping("/detail-doctor/{id}")
+    @GetMapping("/detail/doctor/{id}")
     public ResponseEntity<?> detailDoctorById(@PathVariable Long id) {
         Optional<Doctor> doctor = doctorService.findById(id);
         if (!doctor.isPresent()) {
@@ -195,4 +195,13 @@ public class DoctorController {
 //        responMessage.setMessage(MessageConfig.UPDATE_SUCCESS);
 //        return new ResponseEntity<>(responMessage,HttpStatus.OK);
 //    }
+    @GetMapping("/search/doctor/{name}")
+    public ResponseEntity<?> searchDoctorByName(@PathVariable String name){
+        List<Doctor> doctorListSearch = doctorService.listDoctorByName(name);
+        if (doctorListSearch.size() == 0){
+            responMessage.setMessage(MessageConfig.NOT_FOUND);
+            return new ResponseEntity<>(responMessage,HttpStatus.OK);
+        }
+        return new ResponseEntity<>(doctorListSearch,HttpStatus.OK);
+    }
 }

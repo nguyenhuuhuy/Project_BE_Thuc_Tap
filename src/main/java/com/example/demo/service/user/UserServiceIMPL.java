@@ -4,6 +4,8 @@ import com.example.demo.model.Role;
 import com.example.demo.model.User;
 import com.example.demo.repository.IUserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -69,5 +71,10 @@ public class UserServiceIMPL implements IUserService {
             }
         }
         return strRole;
+    }
+
+    @Override
+    public Page<User> findAll(Pageable pageable) {
+        return userRepository.findAll(pageable);
     }
 }

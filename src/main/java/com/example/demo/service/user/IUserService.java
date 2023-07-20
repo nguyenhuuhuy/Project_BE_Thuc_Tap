@@ -1,6 +1,8 @@
 package com.example.demo.service.user;
 
 import com.example.demo.model.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
@@ -14,4 +16,5 @@ public interface IUserService {
     Optional<User> findById(long id);
     List<User> findByNameContaining(String name);
     String getUserRole(User user);
+    Page<User> findAll(Pageable pageable);
 }

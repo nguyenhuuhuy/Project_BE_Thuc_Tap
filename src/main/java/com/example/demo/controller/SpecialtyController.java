@@ -26,7 +26,7 @@ public class SpecialtyController {
         Collections.reverse(specialtyList);
         return new ResponseEntity<>(specialtyList, HttpStatus.OK);
     }
-    @GetMapping("/detail-specialty/{id}")
+    @GetMapping("/detail/specialty/{id}")
     public ResponseEntity<?> detailSpecialtyById(@PathVariable Long id){
         Optional<Specialty> specialty = iSpecialtyService.findById(id);
         if (!specialty.isPresent()){
@@ -46,12 +46,16 @@ public class SpecialtyController {
         }
         return new ResponseEntity<>(responMessage,HttpStatus.OK);
     }
-    @PutMapping("/update-specialty/{id}")
+    @PutMapping("/update/specialty/{id}")
     public ResponseEntity<?> updateSpecialty(@PathVariable Long id,@RequestBody Specialty specialty){
         Optional<Specialty> specialty1 =iSpecialtyService.findById(id);
         if (!specialty1.isPresent()) {
             responMessage.setMessage(MessageConfig.NOT_FOUND);
             return new ResponseEntity<>(responMessage,HttpStatus.NOT_FOUND);
+        }
+        if (iSpecialtyService.existsByName(specialty.getName())){
+            responMessage.setMessage(MessageConfig.NAME_EXISTED);
+            return new ResponseEntity<>(responMessage,HttpStatus.OK);
         }
         if (specialty.getName().equals(specialty1.get().getName())){
             responMessage.setMessage(MessageConfig.NO_CHANGE);
@@ -73,7 +77,7 @@ public class SpecialtyController {
         responMessage.setMessage(MessageConfig.DELETE_SUCCESS);
         return new ResponseEntity<>(responMessage,HttpStatus.OK);
     }
-    @GetMapping("/search-specialty/{search}")
+    @GetMapping("/search/specialty/{search}")
     public ResponseEntity<?> searchSpecialty(@PathVariable String search){
         List<Specialty> specialtyList = iSpecialtyService.findByNameContaining(search);
         if (specialtyList.isEmpty()){
