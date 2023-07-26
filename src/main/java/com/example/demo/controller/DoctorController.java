@@ -20,7 +20,6 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-import javax.print.Doc;
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 
@@ -35,15 +34,11 @@ public class DoctorController {
     @Autowired
     private UserDetailService userDetailService;
     @Autowired
-    private IBookingService bookingService;
-    @Autowired
     private IUserService userService;
     @Autowired
     private ISpecialtyService specialtyService;
     @Autowired
     JwtProvider jwtProvider;
-    @Autowired
-    JwtTokenFilter jwtTokenFilter;
     private final ResponMessage responMessage = MessageConfig.responMessage;
 
     @GetMapping
@@ -66,9 +61,9 @@ public class DoctorController {
         return new ResponseEntity<>(newList, HttpStatus.OK);
     }
 
-    @GetMapping("/detail/doctor")
+    @GetMapping("/detail")
     public ResponseEntity<?> detailDoctor(HttpServletRequest request) {
-        String token = jwtTokenFilter.getJwt(request);
+        String token = JwtTokenFilter.getJwt(request);
         if (token == null) {
             responMessage.setMessage(MessageConfig.NO_USER);
             return new ResponseEntity<>(responMessage, HttpStatus.OK);
@@ -87,7 +82,7 @@ public class DoctorController {
         return new ResponseEntity<>(doctor, HttpStatus.OK);
     }
 
-    @GetMapping("/detail/doctor/{id}")
+    @GetMapping("/detail/{id}")
     public ResponseEntity<?> detailDoctorById(@PathVariable Long id) {
         Optional<Doctor> doctor = doctorService.findById(id);
         if (!doctor.isPresent()) {
@@ -183,18 +178,7 @@ public class DoctorController {
         responMessage.setMessage(MessageConfig.UPDATE_SUCCESS);
         return new ResponseEntity<>(responMessage, HttpStatus.OK);
     }
-//    @PutMapping("success/booking/oder/timeSlot/{id}")
-//    public ResponseEntity<?> successUserOderByTimeSlotId(@PathVariable Long id) {
-//        Optional<Booking> booking = bookingService.findById(id);
-//        if (!booking.isPresent()){
-//            responMessage.setMessage(MessageConfig.NOT_FOUND);
-//            return new ResponseEntity<>(responMessage,HttpStatus.NOT_FOUND);
-//        }
-//        booking.get().setIsConfirm(IsConfirm.ACCEPT);
-//        bookingService.save(booking.get());
-//        responMessage.setMessage(MessageConfig.UPDATE_SUCCESS);
-//        return new ResponseEntity<>(responMessage,HttpStatus.OK);
-//    }
+
     @GetMapping("/search/doctor/{name}")
     public ResponseEntity<?> searchDoctorByName(@PathVariable String name){
         List<Doctor> doctorListSearch = doctorService.listDoctorByName(name);

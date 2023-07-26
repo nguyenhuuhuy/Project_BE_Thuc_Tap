@@ -59,100 +59,59 @@ public class AuthController {
     AuthenticationManager authenticationManager;
     @Autowired
     JwtProvider jwtProvider;
-    @Autowired
-    JwtTokenFilter jwtTokenFilter;
     private final ResponMessage responMessage = MessageConfig.responMessage;
 
     @GetMapping("/page/users")
-    public ResponseEntity<?> showListPageUser(@PageableDefault(size = 5) Pageable pageable){
+    public ResponseEntity<?> showListPageUser(@PageableDefault(size = 5) Pageable pageable) {
         return new ResponseEntity<>(userService.findAll(pageable), HttpStatus.OK);
     }
+
     @GetMapping("/doctors")
     public ResponseEntity<?> showListDoctor() {
         List<Doctor> storyList = doctorService.findAll();
         Collections.reverse(storyList);
         return new ResponseEntity<>(storyList, HttpStatus.OK);
     }
+
     @GetMapping("/doctors/timeSlotByDoctor/{id}")
-    public ResponseEntity<?> showListTimeSlotByDoctorId(@PathVariable Long id){
+    public ResponseEntity<?> showListTimeSlotByDoctorId(@PathVariable Long id) {
         List<TimeSlot> timeSlotList = timeSlotService.getTimeSlotsByDoctorId(id);
-        if (timeSlotList.isEmpty()){
+        if (timeSlotList.isEmpty()) {
             responMessage.setMessage(MessageConfig.NOT_FOUND);
-            return new ResponseEntity<>(responMessage,HttpStatus.OK);
+            return new ResponseEntity<>(responMessage, HttpStatus.OK);
         }
-        return new ResponseEntity<>(timeSlotList,HttpStatus.OK);
+        return new ResponseEntity<>(timeSlotList, HttpStatus.OK);
     }
 
     @GetMapping("/detail/timeSlotById/{id}")
-    public ResponseEntity<?> detailTimeSlotById(@PathVariable Long id){
+    public ResponseEntity<?> detailTimeSlotById(@PathVariable Long id) {
         Optional<TimeSlot> timeSlot = timeSlotService.findById(id);
-        if (!timeSlot.isPresent()){
+        if (!timeSlot.isPresent()) {
             responMessage.setMessage(MessageConfig.NOT_FOUND);
-            return new ResponseEntity<>(responMessage,HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(responMessage, HttpStatus.NOT_FOUND);
         }
-        return new ResponseEntity<>(timeSlot,HttpStatus.OK);
+        return new ResponseEntity<>(timeSlot, HttpStatus.OK);
     }
 
     @GetMapping("/list/oderByUserId")
-    public ResponseEntity<?> showListOderByUserId(HttpServletRequest request){
-        String token = jwtTokenFilter.getJwt(request);
-        if (token == null){
-            responMessage.setMessage(MessageConfig.NO_USER);
-            return new ResponseEntity<>(responMessage,HttpStatus.OK);
-        }
-        String username = jwtProvider.getUerNameFromToken(token);
-        User user = userService.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("Username not found"));
-        if (user.getId() == null){
-            responMessage.setMessage(MessageConfig.NO_USER);
-            return new ResponseEntity<>(responMessage,HttpStatus.OK);
-        }
+    public ResponseEntity<?> showListOderByUserId() {
+        User user = userDetailService.getCurrentUser();
         List<Booking> bookingOderByUserId = bookingService.findByUserId(user.getId());
-        if (bookingOderByUserId.isEmpty()){
+        if (bookingOderByUserId.isEmpty()) {
             responMessage.setMessage(MessageConfig.NOT_FOUND);
-            return new ResponseEntity<>(responMessage,HttpStatus.OK);
+            return new ResponseEntity<>(responMessage, HttpStatus.OK);
         }
-        List<Booking> bookingListOderLoading = new ArrayList<>();
-        for (int i = 0; i < bookingOderByUserId.size(); i++) {
-            if (bookingOderByUserId.get(i).getIsConfirm() == IsConfirm.LOADING){
-                bookingListOderLoading.add(bookingOderByUserId.get(i));
-            }
-        }
-        return new ResponseEntity<>(bookingListOderLoading,HttpStatus.OK);
+        return new ResponseEntity<>(bookingOderByUserId, HttpStatus.OK);
     }
 
-    @GetMapping("/list/cancelByUserId")
-    public ResponseEntity<?> showListCancelByUserId(HttpServletRequest request){
-        String token = jwtTokenFilter.getJwt(request);
-        if (token == null){
-            responMessage.setMessage(MessageConfig.NO_USER);
-            return new ResponseEntity<>(responMessage,HttpStatus.OK);
-        }
-        String username = jwtProvider.getUerNameFromToken(token);
-        User user = userService.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("Username not found"));
-        if (user.getId() == null){
-            responMessage.setMessage(MessageConfig.NO_USER);
-            return new ResponseEntity<>(responMessage,HttpStatus.OK);
-        }
-        List<Booking> bookingOderByUserId = bookingService.findByUserId(user.getId());
-        if (bookingOderByUserId.isEmpty()){
-            responMessage.setMessage(MessageConfig.NOT_FOUND);
-            return new ResponseEntity<>(responMessage,HttpStatus.OK);
-        }
-        List<Booking> bookingListOderCancel = new ArrayList<>();
-        for (int i = 0; i < bookingOderByUserId.size(); i++) {
-            if (bookingOderByUserId.get(i).getIsConfirm() == IsConfirm.CANCEL){
-                bookingListOderCancel.add(bookingOderByUserId.get(i));
-            }
-        }
-        return new ResponseEntity<>(bookingListOderCancel,HttpStatus.OK);
-    }
+
 
     @PutMapping("/cancel/booking/user/timeslot/{id}")
-    public ResponseEntity<?> cancelBookingByTimeslotId(@PathVariable Long id){
+    public ResponseEntity<?> cancelBookingByTimeslotId(@PathVariable Long id) {
         Optional<Booking> cancelBooking = bookingService.findById(id);
-        if (!cancelBooking.isPresent()){
+        if (!cancelBooking.isPresent()) {
             responMessage.setMessage(MessageConfig.NOT_FOUND);
-            return new ResponseEntity<>(responMessage,HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(responMessage, HttpStatus.NOT_FOUND);
         }
         Optional<TimeSlot> timeSlot = timeSlotService.findById(cancelBooking.get().getTimeSlot().getId());
         timeSlot.get().setBooked(false);
@@ -160,41 +119,16 @@ public class AuthController {
         bookingService.save(cancelBooking.get());
         timeSlotService.save(timeSlot.get());
         responMessage.setMessage(MessageConfig.UPDATE_SUCCESS);
-        return new ResponseEntity<>(responMessage,HttpStatus.OK);
+        return new ResponseEntity<>(responMessage, HttpStatus.OK);
     }
 
-    @GetMapping("/list/acceptByUserId")
-    public ResponseEntity<?> showListAcceptByUserId(HttpServletRequest request){
-        String token = jwtTokenFilter.getJwt(request);
-        if (token == null){
-            responMessage.setMessage(MessageConfig.NO_USER);
-            return new ResponseEntity<>(responMessage,HttpStatus.OK);
-        }
-        String username = jwtProvider.getUerNameFromToken(token);
-        User user = userService.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("Username not found"));
-        if (user.getId() == null){
-            responMessage.setMessage(MessageConfig.NO_USER);
-            return new ResponseEntity<>(responMessage,HttpStatus.OK);
-        }
-        List<Booking> bookingOderByUserId = bookingService.findByUserId(user.getId());
-        if (bookingOderByUserId.isEmpty()){
-            responMessage.setMessage(MessageConfig.NOT_FOUND);
-            return new ResponseEntity<>(responMessage,HttpStatus.OK);
-        }
-        List<Booking> bookingListOderAccept = new ArrayList<>();
-        for (int i = 0; i < bookingOderByUserId.size(); i++) {
-            if (bookingOderByUserId.get(i).getIsConfirm() == IsConfirm.ACCEPT){
-                bookingListOderAccept.add(bookingOderByUserId.get(i));
-            }
-        }
-        return new ResponseEntity<>(bookingListOderAccept,HttpStatus.OK);
-    }
     @GetMapping("/specialty")
     public ResponseEntity<?> showListSpecialty() {
         List<Specialty> specialtyList = iSpecialtyService.findAll();
         Collections.reverse(specialtyList);
         return new ResponseEntity<>(specialtyList, HttpStatus.OK);
     }
+
     @GetMapping("/users")
     public ResponseEntity<?> getListUser() {
         return new ResponseEntity<>(userService.findAll(), HttpStatus.OK);
@@ -256,9 +190,9 @@ public class AuthController {
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String token = jwtProvider.createToken(authentication);
         String username = jwtProvider.getUerNameFromToken(token);
-        User user = userService.findByUsername(username).orElseThrow(()->new UsernameNotFoundException("user name not fond"));
-        if (user.isStatus()){
-            return new ResponseEntity<>(new ResponMessage("login_denied"),HttpStatus.OK);
+        User user = userService.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("user name not fond"));
+        if (user.isStatus()) {
+            return new ResponseEntity<>(new ResponMessage("login_denied"), HttpStatus.OK);
         }
         UserPrinciple userPrinciple = (UserPrinciple) authentication.getPrincipal();
         return ResponseEntity.ok(new JwtResponse(token, userPrinciple.getName(), userPrinciple.getAvatar(), userPrinciple.getAuthorities()));
@@ -266,7 +200,7 @@ public class AuthController {
 
     @PutMapping("/change/avatars")
     public ResponseEntity<?> changeAvatar(HttpServletRequest request, @Valid @RequestBody ChangeAvatar changeAvatar) {
-        String token = jwtTokenFilter.getJwt(request);
+        String token = JwtTokenFilter.getJwt(request);
         String username = jwtProvider.getUerNameFromToken(token);
         User user = userService.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("Username not found"));
         if (changeAvatar.getAvatar() == null || changeAvatar.getAvatar().trim().equals("")) {
@@ -282,7 +216,7 @@ public class AuthController {
 
     @PutMapping("/update/users")
     public ResponseEntity<?> updateUser(HttpServletRequest request, @Valid @RequestBody UserDto userDto) {
-        String token = jwtTokenFilter.getJwt(request);
+        String token = JwtTokenFilter.getJwt(request);
         if (token == null) {
             responMessage.setMessage(MessageConfig.NO_USER);
             return new ResponseEntity<>(responMessage, HttpStatus.OK);
@@ -324,7 +258,7 @@ public class AuthController {
                 responMessage.setMessage(MessageConfig.ACCESS_DENIED);
                 return new ResponseEntity<>(responMessage, HttpStatus.OK);
             }
-            if (user.get().isStatus()){
+            if (user.get().isStatus()) {
                 user.get().setStatus(false);
                 userService.save(user.get());
                 responMessage.setMessage(MessageConfig.UN_BLOCK_SUCCESS);
@@ -336,6 +270,7 @@ public class AuthController {
             return new ResponseEntity<>(responMessage, HttpStatus.OK);
         }
     }
+
     @GetMapping("/search/users/{search}")
     public ResponseEntity<?> searchSpecialty(@PathVariable String search) {
         List<User> userList = userService.findByNameContaining(search);

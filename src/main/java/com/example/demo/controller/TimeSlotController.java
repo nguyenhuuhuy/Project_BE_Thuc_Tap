@@ -52,6 +52,15 @@ public class TimeSlotController {
         }
         return new ResponseEntity<>(timeSlotListByDoctorId,HttpStatus.OK);
     }
+//    @GetMapping("/detail/list/timeSlotByDoctor/{id}")
+//    public ResponseEntity<?> detailTimeSlotByDoctorId(@PathVariable Long id){
+//        List<TimeSlot> timeSlotListByDoctorId = timeSlotService.getTimeSlotsByDoctorId(id);
+//        if (timeSlotListByDoctorId.size() == 0){
+//            responMessage.setMessage(MessageConfig.NOT_FOUND);
+//            return new ResponseEntity<>(responMessage,HttpStatus.OK);
+//        }
+//        return new ResponseEntity<>(timeSlotListByDoctorId,HttpStatus.OK);
+//    }
     @PostMapping
     public ResponseEntity<?> createTimeSlot(@RequestBody TimeSlotDto timeSlotDto){
         User user = userDetailService.getCurrentUser();

@@ -37,7 +37,7 @@ public class BookingController {
         return new ResponseEntity<>(bookingList, HttpStatus.OK);
     }
 
-    @GetMapping("/detail-booking/{id}")
+    @GetMapping("/detail/{id}")
     public ResponseEntity<?> detailBookingById(@PathVariable Long id) {
         Optional<Booking> booking = bookingService.findById(id);
         if (!booking.isPresent()) {
@@ -67,10 +67,14 @@ public class BookingController {
     @PostMapping("/{id}")
     public ResponseEntity<?> createBooking(@RequestBody BookingDto bookingDto, @PathVariable Long id) {
         User user = userDetailService.getCurrentUser();
+        if (user.getId() == null){
+            responMessage.setMessage(MessageConfig.ACCESS_DENIED);
+            return new ResponseEntity<>(responMessage, HttpStatus.OK);
+        }
         String role = "";
         role = userService.getUserRole(user);
         if (!role.equals("USER")) {
-            responMessage.setMessage(MessageConfig.ACCESS_DENIED);
+            responMessage.setMessage(MessageConfig.ACCESS_DENIED_ROLE);
             return new ResponseEntity<>(responMessage, HttpStatus.OK);
         }
         Booking booking = new Booking();
