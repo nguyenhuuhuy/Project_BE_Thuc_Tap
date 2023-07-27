@@ -26,7 +26,7 @@ public class SpecialtyServiceIMPL implements ISpecialtyService{
 
     @Override
     public Page<Specialty> findAll(Pageable pageable) {
-        return null;
+        return iSpecialtyRepository.findAll(pageable);
     }
 
     @Override

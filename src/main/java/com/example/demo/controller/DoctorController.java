@@ -8,7 +8,6 @@ import com.example.demo.model.*;
 import com.example.demo.security.jwt.JwtProvider;
 import com.example.demo.security.jwt.JwtTokenFilter;
 import com.example.demo.security.userprincal.UserDetailService;
-import com.example.demo.service.booking.IBookingService;
 import com.example.demo.service.doctor.IDoctorService;
 import com.example.demo.service.role.IRoleService;
 import com.example.demo.service.specialty.ISpecialtyService;
@@ -68,7 +67,7 @@ public class DoctorController {
             responMessage.setMessage(MessageConfig.NO_USER);
             return new ResponseEntity<>(responMessage, HttpStatus.OK);
         }
-        String username = jwtProvider.getUerNameFromToken(token);
+        String username = JwtProvider.getUerNameFromToken(token);
         User user = userService.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("Username not found"));
         if (user.getId() == null) {
             responMessage.setMessage(MessageConfig.NO_USER);
@@ -179,8 +178,8 @@ public class DoctorController {
         return new ResponseEntity<>(responMessage, HttpStatus.OK);
     }
 
-    @GetMapping("/search/doctor/{name}")
-    public ResponseEntity<?> searchDoctorByName(@PathVariable String name){
+    @GetMapping("/search")
+    public ResponseEntity<?> searchDoctorByName(@RequestParam("doctor") String name){
         List<Doctor> doctorListSearch = doctorService.listDoctorByName(name);
         if (doctorListSearch.size() == 0){
             responMessage.setMessage(MessageConfig.NOT_FOUND);

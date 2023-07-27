@@ -5,6 +5,8 @@ import com.example.demo.dto.response.ResponMessage;
 import com.example.demo.model.Specialty;
 import com.example.demo.service.specialty.ISpecialtyService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -26,6 +28,11 @@ public class SpecialtyController {
         Collections.reverse(specialtyList);
         return new ResponseEntity<>(specialtyList, HttpStatus.OK);
     }
+    @GetMapping("/page")
+    public ResponseEntity<?> showListPageSpecialty(@PageableDefault(size = 3)Pageable pageable){
+        return new ResponseEntity<>(iSpecialtyService.findAll(pageable),HttpStatus.OK);
+    }
+
     @GetMapping("/detail/specialty/{id}")
     public ResponseEntity<?> detailSpecialtyById(@PathVariable Long id){
         Optional<Specialty> specialty = iSpecialtyService.findById(id);
@@ -66,7 +73,7 @@ public class SpecialtyController {
         responMessage.setMessage(MessageConfig.UPDATE_SUCCESS);
         return new ResponseEntity<>(responMessage,HttpStatus.OK);
     }
-    @DeleteMapping("/delete-specialty/{id}")
+    @DeleteMapping("/delete/{id}")
     public ResponseEntity<?> deleteSpecialtyById(@PathVariable Long id){
         Optional<Specialty> specialty = iSpecialtyService.findById(id);
         if (!specialty.isPresent()){
@@ -77,9 +84,10 @@ public class SpecialtyController {
         responMessage.setMessage(MessageConfig.DELETE_SUCCESS);
         return new ResponseEntity<>(responMessage,HttpStatus.OK);
     }
-    @GetMapping("/search/specialty/{search}")
-    public ResponseEntity<?> searchSpecialty(@PathVariable String search){
-        List<Specialty> specialtyList = iSpecialtyService.findByNameContaining(search);
+
+    @GetMapping("/search")
+    public ResponseEntity<?> searchSpecialty1(@RequestParam("specialty") String name){
+        List<Specialty> specialtyList = iSpecialtyService.findByNameContaining(name);
         if (specialtyList.isEmpty()){
             responMessage.setMessage(MessageConfig.NOT_FOUND);
             return new ResponseEntity<>(responMessage, HttpStatus.OK);

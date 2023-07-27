@@ -271,9 +271,9 @@ public class AuthController {
         }
     }
 
-    @GetMapping("/search/users/{search}")
-    public ResponseEntity<?> searchSpecialty(@PathVariable String search) {
-        List<User> userList = userService.findByNameContaining(search);
+    @GetMapping("/search")
+    public ResponseEntity<?> searchSpecialty(@RequestParam("users") String name) {
+        List<User> userList = userService.findByNameContaining(name);
         if (userList.isEmpty()) {
             responMessage.setMessage(MessageConfig.NOT_FOUND);
             return new ResponseEntity<>(responMessage, HttpStatus.OK);

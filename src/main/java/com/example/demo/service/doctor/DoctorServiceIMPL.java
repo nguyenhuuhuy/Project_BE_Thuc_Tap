@@ -26,7 +26,7 @@ public class DoctorServiceIMPL implements IDoctorService{
 
     @Override
     public Page<Doctor> findAll(Pageable pageable) {
-        return null;
+        return iDoctorRepository.findAll(pageable);
     }
 
     @Override
