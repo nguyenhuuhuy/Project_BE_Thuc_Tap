@@ -21,7 +21,7 @@ public final class MessageConfig {
     public static final String BLOCK_SUCCESS = "block_success";
     public static final String NOT_TIME_SLOT = "not_time_slot";
     public static final String AVATAR_FAILED = "avatar_failed";
-
+    public static final String ADMIN_NO_UPDATE = "admin_no_update";
     public static final String ADMIN = "admin";
     public static final String PM = "pm";
     public static final String USER = "user";

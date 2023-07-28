@@ -13,6 +13,8 @@ import com.example.demo.service.role.IRoleService;
 import com.example.demo.service.specialty.ISpecialtyService;
 import com.example.demo.service.user.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -46,7 +48,10 @@ public class DoctorController {
         Collections.reverse(doctorList);
         return new ResponseEntity<>(doctorList, HttpStatus.OK);
     }
-
+    @GetMapping("/page")
+    public ResponseEntity<?> showPageDoctor(@PageableDefault(size = 3)Pageable pageable){
+        return new ResponseEntity<>(doctorService.findAll(pageable),HttpStatus.OK);
+    }
     @GetMapping("/status")
     public ResponseEntity<?> showListDoctorStatus() {
         List<Doctor> doctorList = doctorService.findAll();

@@ -1,10 +1,7 @@
 package com.example.demo.controller;
 
 import com.example.demo.config.MessageConfig;
-import com.example.demo.dto.request.ChangeAvatar;
-import com.example.demo.dto.request.SignInForm;
-import com.example.demo.dto.request.SignUpForm;
-import com.example.demo.dto.request.UserDto;
+import com.example.demo.dto.request.*;
 import com.example.demo.dto.response.JwtResponse;
 import com.example.demo.dto.response.ResponMessage;
 import com.example.demo.model.*;
@@ -142,6 +139,21 @@ public class AuthController {
         }
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
+    @GetMapping("/detail/user")
+    public ResponseEntity<?> detailUserByName(HttpServletRequest request) {
+        String token = JwtTokenFilter.getJwt(request);
+        if (token == null) {
+            responMessage.setMessage(MessageConfig.NO_USER);
+            return new ResponseEntity<>(responMessage, HttpStatus.OK);
+        }
+        String username = JwtProvider.getUerNameFromToken(token);
+        User user = userService.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("Username not found"));
+        if (user.getId() == null) {
+            responMessage.setMessage(MessageConfig.NO_USER);
+            return new ResponseEntity<>(responMessage, HttpStatus.OK);
+        }
+        return new ResponseEntity<>(user, HttpStatus.OK);
+    }
 
     @PostMapping("/signUp")
     public ResponseEntity<?> register(@Valid @RequestBody SignUpForm signUpForm) {
@@ -214,31 +226,6 @@ public class AuthController {
         }
     }
 
-    @PutMapping("/update/users")
-    public ResponseEntity<?> updateUser(HttpServletRequest request, @Valid @RequestBody UserDto userDto) {
-        String token = JwtTokenFilter.getJwt(request);
-        if (token == null) {
-            responMessage.setMessage(MessageConfig.NO_USER);
-            return new ResponseEntity<>(responMessage, HttpStatus.OK);
-        }
-        String username = jwtProvider.getUerNameFromToken(token);
-        User user = userService.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("user name not fond"));
-        if (user.isStatus()) {
-            responMessage.setMessage(MessageConfig.ACCESS_DENIED);
-            return new ResponseEntity<>(responMessage, HttpStatus.OK);
-        }
-        if (userDto.getAvatar() == null || userDto.getAvatar().trim().equals("")) {
-            responMessage.setMessage(MessageConfig.AVATAR_FAILED);
-            return new ResponseEntity<>(responMessage, HttpStatus.OK);
-        } else {
-            user.setName(userDto.getName());
-            user.setAvatar(userDto.getAvatar());
-            user.setPassword(passwordEncoder.encode(userDto.getPassword()));
-            userService.save(user);
-            responMessage.setMessage(MessageConfig.UPDATE_SUCCESS);
-            return new ResponseEntity<>(responMessage, HttpStatus.OK);
-        }
-    }
 
     @GetMapping("/block/user/{id}")
     public ResponseEntity<?> blockUser(@PathVariable Long id) {
@@ -271,6 +258,27 @@ public class AuthController {
         }
     }
 
+    @PutMapping("/update/user")
+    public ResponseEntity<?> updateUser(@RequestBody UpdateUserDto updateUserDto){
+        User user = userDetailService.getCurrentUser();
+        String role = "";
+        role = userService.getUserRole(user);
+        if (role.equals(MessageConfig.ADMIN)){
+            responMessage.setMessage(MessageConfig.ADMIN_NO_UPDATE);
+            return new ResponseEntity<>(responMessage,HttpStatus.OK);
+        }
+        if (updateUserDto.getAvatar() == null || updateUserDto.getAvatar().trim().equals("")){
+            responMessage.setMessage(MessageConfig.AVATAR_FAILED);
+            return new ResponseEntity<>(responMessage,HttpStatus.OK);
+        } else {
+            user.setName(updateUserDto.getName());
+            user.setAvatar(updateUserDto.getAvatar());
+            userService.save(user);
+            responMessage.setMessage(MessageConfig.UPDATE_SUCCESS);
+            return new ResponseEntity<>(responMessage,HttpStatus.OK);
+        }
+    }
+
     @GetMapping("/search")
     public ResponseEntity<?> searchSpecialty(@RequestParam("users") String name) {
         List<User> userList = userService.findByNameContaining(name);
@@ -279,5 +287,19 @@ public class AuthController {
             return new ResponseEntity<>(responMessage, HttpStatus.OK);
         }
         return new ResponseEntity<>(userList, HttpStatus.OK);
+    }
+
+    @GetMapping("/search/all")
+    public ResponseEntity<?> searchAll(@RequestParam("name") String name){
+        List<Doctor> doctorList = doctorService.listDoctorByName(name);
+        List<Specialty> specialtyList = iSpecialtyService.findByNameContaining(name);
+        ResultSearchDto resultSearchDto = new ResultSearchDto();
+        if (!doctorList.isEmpty()){
+            resultSearchDto.setDoctorList(doctorList);
+        }
+        if (!specialtyList.isEmpty()){
+            resultSearchDto.setSpecialtyList(specialtyList);
+        }
+        return new ResponseEntity<>(resultSearchDto,HttpStatus.OK);
     }
 }
